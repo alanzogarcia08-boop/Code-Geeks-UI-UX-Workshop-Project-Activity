@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocket Archive - Retro GBA Digital Ecosystem</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0e1114',
+                        darkCard: '#161a1e',
+                        darkBorder: '#232931',
+                        moss: '#4a7c59',
+                        mossGlow: '#60a373',
+                        tealAccent: '#2b938f',
+                        sky: '#3a86ff',
+                        mutedYellow: '#ffbe0b',
+                        apricot: '#fb5607',
+                        neonPink: '#ff006e',
+                        // Pastel Cute Accents
+                        pastelPink: '#ffb3c6',
+                        pastelMint: '#b7e4c7',
+                        pastelLavender: '#d8bbff',
+                        pastelPeach: '#ffdab9',
+                        pastelCyan: '#a2d2ff'
+                    },
+                    fontFamily: {
+                        pixel: ['"Press Start 2P"', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0e1114; }
+        ::-webkit-scrollbar-thumb { background: #232931; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2b938f; }
+
+        /* Scanline CRT FX Layer */
+        .crt-overlay {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Glitch Boot Animation */
+        @keyframes bootGlitch {
+            0% { transform: translate(0) scale(1); filter: hue-rotate(0deg); }
+            20% { transform: translate(-3px, 2px) scale(1.01); filter: hue-rotate(90deg); }
+            40% { transform: translate(3px, -1px) scale(0.99); filter: hue-rotate(180deg); }
+            60% { transform: translate(-2px, -2px) scale(1.005); filter: hue-rotate(270deg); }
+            100% { transform: translate(0) scale(1); filter: hue-rotate(360deg); }
+        }
+        .boot-glitch { animation: bootGlitch 0.35s ease-in-out; }
+
+        /* Organic Cute Squash & Stretch Bouncy Idle Animation */
+        @keyframes cuteBounce {
+            0%, 100% { transform: translateY(0px) scale(1, 1) rotate(0deg); }
+            30% { transform: translateY(-10px) scale(0.92, 1.08) rotate(-1deg); }
+            50% { transform: translateY(0px) scale(1.08, 0.92) rotate(1deg); }
+            70% { transform: translateY(-4px) scale(0.98, 1.02) rotate(0deg); }
+        }
+        .animate-cute-bounce { 
+            animation: cuteBounce 2.5s cubic-bezier(0.28, 0.84, 0.42, 1) infinite; 
+            transform-origin: bottom center;
+        }
+
+        /* GBA Cartridge Slot Visual Styling */
+        .gba-slot-container {
+            position: relative;
+            background: linear-gradient(180deg, #121519 0%, #1a1e24 100%);
+            border: 2px solid #28303d;
+            border-radius: 12px 12px 6px 6px;
+            box-shadow: inset 0 8px 12px rgba(0, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.5);
+            padding-top: 18px;
+        }
+
+        .gba-cartridge-header {
+            position: relative;
+            background: linear-gradient(180deg, #2a313d 0%, #1c222b 100%);
+            border: 2px solid #3d4758;
+            border-bottom: none;
+            border-radius: 14px 14px 4px 4px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.4);
+            margin-top: -32px;
+            z-index: 10;
+        }
+
+        /* GBA Top Ribbing Grips */
+        .cartridge-ribs {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            padding: 4px 0;
+            background: rgba(0,0,0,0.25);
+            border-bottom: 1px solid #3d4758;
+        }
+        .cartridge-rib {
+            width: 14px;
+            height: 4px;
+            background: #14181f;
+            border-radius: 1px;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+        }
+
+        /* Holographic Metallic Foil Effect */
+        .holo-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+            transform-style: preserve-3d;
+        }
+        .holo-card::after {
+            content: "";
+            position: absolute;
+            top: -100%; left: -100%; width: 300%; height: 300%;
+            background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.12) 40%, rgba(58, 134, 255, 0.25) 45%, rgba(255, 0, 110, 0.25) 50%, rgba(255, 190, 11, 0.2) 55%, transparent 80%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .holo-card:hover::after { opacity: 1; }
+
+        /* Weather particle overlay states */
+        .weather-rain {
+            background-image: repeating-linear-gradient(170deg, rgba(58, 134, 255, 0.15) 0px, rgba(58, 134, 255, 0.15) 2px, transparent 2px, transparent 12px);
+            animation: rainAnim 0.6s linear infinite;
+        }
+        @keyframes rainAnim { 0% { background-position: 0 0; } 100% { background-position: -20px 100px; } }
+
+        .weather-fog {
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(14,17,20,0.6) 80%);
+            backdrop-filter: blur(2px);
+        }
+
+        .weather-sun {
+            background: radial-gradient(circle at 80% 20%, rgba(255, 190, 11, 0.18) 0%, transparent 60%);
+        }
+
+        .glow-teal { box-shadow: 0 0 15px rgba(43, 147, 143, 0.4); }
+    </style>
+</head>
+<body class="bg-darkBg text-gray-200 font-sans min-h-screen relative overflow-x-hidden selection:bg-tealAccent selection:text-white">
+
+    <!-- CRT Overlay Layer (Toggleable) -->
+    <div id="crtOverlay" class="crt-overlay fixed inset-0 z-50 pointer-events-none opacity-80 transition-opacity duration-300"></div>
+
+    <!-- Main Container -->
+    <div id="appBody" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10 relative">
+
+        <!-- HEADER & HUD NAV -->
+        <header class="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-darkCard border border-darkBorder shadow-2xl relative z-10">
+            <!-- Logo & GBA Stylized Badge -->
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-tealAccent via-pastelPink to-moss flex items-center justify-center border-2 border-tealAccent/50 shadow-lg glow-teal">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-pixel text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pastelPink via-sky-400 to-amber-300">
+                            POCKET ARCHIVE
+                        </h1>
+                        <span class="text-[10px] font-mono font-bold bg-moss/30 text-mossGlow border border-moss/50 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                            POLISHED-GBA v4.2
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-400 font-mono mt-0.5">
+                        ADVANCE DIGITAL ECOSYSTEM & CARTRIDGE REPOSITORY
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick HUD Status & Controls -->
+            <div class="flex flex-wrap items-center gap-3 font-mono text-xs">
+                <!-- Live Counter -->
+                <div class="bg-darkBg border border-darkBorder px-3 py-1.5 rounded-lg flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-gray-400">ENTRIES:</span>
+                    <span id="counterValue" class="text-teal-400 font-bold text-sm">14/14</span>
+                </div>
+
+                <!-- CRT Toggle Button -->
+                <button id="crtToggleBtn" class="px-3 py-1.5 rounded-lg bg-darkBg border border-darkBorder hover:border-tealAccent/50 text-gray-300 hover:text-white transition flex items-center gap-1.5 active:scale-95">
+                    <svg class="w-4 h-4 text-sky" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <span>CRT: <strong id="crtState" class="text-emerald-400">ON</strong></span>
+                </button>
+
+                <!-- Glitch Boot Test -->
+                <button onclick="triggerGlitch()" class="px-3 py-1.5 rounded-lg bg-darkBg border border-darkBorder hover:border-apricot text-gray-300 hover:text-apricot transition flex items-center gap-1.5 active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span>REBOOT</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- HERO SECTION: Polished Featured Creature & Typewriter Log HUD -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: Polished Seeded Symmetrical Creature Generator -->
+            <div class="lg:col-span-5 bg-darkCard border border-darkBorder rounded-2xl p-5 relative overflow-hidden shadow-xl flex flex-col justify-between">
+                <div class="absolute -top-12 -left-12 w-40 h-40 bg-pastelPink/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-pastelPink animate-ping"></span>
+                        <h2 class="font-pixel text-xs text-gray-300 uppercase tracking-wider">POLISHED SPRITE GEN</h2>
+                    </div>
+                    <span id="creatureSeedTag" class="font-mono text-xs bg-darkBg border border-darkBorder text-pastelPink px-2.5 py-1 rounded-md">
+                        SEED: #CUTE01
+                    </span>
+                </div>
+
+                <!-- SVG Display Canvas & Bouncy Frame -->
+                <div id="creatureContainer" class="relative group cursor-pointer bg-darkBg/90 border border-darkBorder rounded-xl p-6 flex flex-col items-center justify-center my-2 transition duration-300 hover:border-pastelPink/60 shadow-inner overflow-hidden">
+                    <!-- Dynamic Polished SVG Creature -->
+                    <div id="creatureSvgHolder" class="w-52 h-52 flex items-center justify-center animate-cute-bounce transition-transform duration-200 group-hover:scale-105">
+                        <!-- SVG injected via JS -->
+                    </div>
+                    
+                    <p class="text-[11px] font-mono text-pastelPink/80 mt-2 group-hover:text-pastelPink transition">
+                        [ CLICK SPRITE TO SPARKLE ]
+                    </p>
+
+                    <!-- Click Particle Ring Canvas Overlay -->
+                    <canvas id="pulseCanvas" class="absolute inset-0 pointer-events-none w-full h-full"></canvas>
+                </div>
+
+                <!-- Creature Meta & Action Controls -->
+                <div class="mt-3 flex items-center justify-between gap-2">
+                    <div>
+                        <h3 id="creatureName" class="font-pixel text-sm text-pastelPink">CHIBI-PUFF #042</h3>
+                        <p id="creatureType" class="font-mono text-xs text-gray-400 mt-0.5">TYPE: FAIRY / CUTE</p>
+                    </div>
+                    <button id="rerollCreatureBtn" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-pastelPink via-tealAccent to-pastelMint hover:opacity-95 text-darkBg font-mono text-xs font-bold shadow-md active:scale-95 transition flex items-center gap-2">
+                        <svg class="w-4 h-4 text-darkBg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>NEW SPRITE</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Interactive Typewriter Dex HUD -->
+            <div class="lg:col-span-7 bg-darkCard border border-darkBorder rounded-2xl p-6 relative flex flex-col justify-between shadow-xl">
+                <div>
+                    <div class="flex items-center justify-between border-b border-darkBorder pb-3 mb-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-pastelPink animate-ping"></div>
+                            <h2 class="font-pixel text-xs text-gray-200">FIELD LOG DECOVER</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-xs text-gray-400">AUDIO TICKER:</span>
+                            <button id="tickerAudioBtn" class="px-2 py-0.5 rounded bg-darkBg border border-darkBorder font-mono text-xs text-emerald-400">
+                                ACTIVE
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Typewriter Text Output Console -->
+                    <div class="bg-darkBg border border-darkBorder rounded-xl p-4 min-h-[140px] relative font-mono text-xs leading-relaxed text-emerald-400/90 shadow-inner">
+                        <div id="typewriterText" class="inline">Initializing Whole Polished Pocket Archive HUD... Ready for cartridge analysis.</div>
+                        <span id="cursor" class="inline-block w-2 h-4 bg-emerald-400 ml-1 animate-pulse align-middle"></span>
+                    </div>
+
+                    <!-- Quick Stats Display Bar -->
+                    <div class="grid grid-cols-3 gap-3 mt-4">
+                        <div class="bg-darkBg/60 border border-darkBorder rounded-lg p-2.5">
+                            <div class="text-[10px] font-mono text-gray-500 uppercase">SYS STABILITY</div>
+                            <div class="font-mono font-bold text-sm text-sky mt-0.5">99.9%</div>
+                        </div>
+                        <div class="bg-darkBg/60 border border-darkBorder rounded-lg p-2.5">
+                            <div class="text-[10px] font-mono text-gray-500 uppercase">CARTRIDGE ROM</div>
+                            <div class="font-mono font-bold text-sm text-mutedYellow mt-0.5">32 MB GBA</div>
+                        </div>
+                        <div class="bg-darkBg/60 border border-darkBorder rounded-lg p-2.5">
+                            <div class="text-[10px] font-mono text-gray-500 uppercase">TYPE COVERAGE</div>
+                            <div class="font-mono font-bold text-sm text-pastelPink mt-0.5">18 / 18</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Filter Search Quick Dock -->
+                <div class="mt-5 pt-4 border-t border-darkBorder flex flex-col sm:flex-row items-center gap-3">
+                    <div class="relative w-full">
+                        <input type="text" id="searchInput" placeholder="Search archive titles, games, types..." class="w-full bg-darkBg border border-darkBorder rounded-xl px-4 py-2.5 font-mono text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-tealAccent focus:ring-1 focus:ring-tealAccent transition">
+                        <svg class="w-4 h-4 text-gray-500 absolute right-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <select id="generationFilter" class="bg-darkBg border border-darkBorder rounded-xl px-3 py-2.5 font-mono text-xs text-gray-300 focus:outline-none focus:border-tealAccent w-full sm:w-auto">
+                        <option value="ALL">ALL GENS</option>
+                        <option value="GEN3">GEN III (HOENN)</option>
+                        <option value="GEN1_REMAKE">GEN I REMAKES</option>
+                        <option value="SPINOFF">SPIN-OFFS</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- GBA SLOT SECTION DIVIDER #1 -->
+        <div class="relative my-12">
+            <div class="gba-slot-container p-4">
+                <div class="gba-cartridge-header max-w-sm mx-auto p-2 shadow-lg">
+                    <div class="cartridge-ribs mb-1">
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                    </div>
+                    <div class="bg-gradient-to-r from-tealAccent/30 via-pastelPink/40 to-sky/30 p-2 rounded text-center border border-gray-600/50">
+                        <div class="font-pixel text-[10px] text-teal-300 tracking-wider uppercase">▼ SLOT 01: CARTRIDGE GALLERY ▼</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARTRIDGE REPOSITORY GRID -->
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="font-pixel text-sm text-gray-200">GBA CARTRIDGE VAULT</h2>
+                    <p class="font-mono text-xs text-gray-400 mt-1">Hover over cartridges for 3D tilt & dynamic metallic sheen</p>
+                </div>
+                <!-- Filter Badges -->
+                <div id="typeTagsFilter" class="hidden md:flex flex-wrap gap-1.5 font-mono text-[11px]">
+                    <button data-type="ALL" class="type-btn active bg-tealAccent text-white px-2.5 py-1 rounded-md border border-tealAccent">ALL</button>
+                    <button data-type="FIRE" class="type-btn bg-darkBg text-gray-400 px-2.5 py-1 rounded-md border border-darkBorder hover:text-white">FIRE</button>
+                    <button data-type="WATER" class="type-btn bg-darkBg text-gray-400 px-2.5 py-1 rounded-md border border-darkBorder hover:text-white">WATER</button>
+                    <button data-type="GRASS" class="type-btn bg-darkBg text-gray-400 px-2.5 py-1 rounded-md border border-darkBorder hover:text-white">GRASS</button>
+                    <button data-type="DRAGON" class="type-btn bg-darkBg text-gray-400 px-2.5 py-1 rounded-md border border-darkBorder hover:text-white">DRAGON</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Multi-Column Grid -->
+            <div id="cartridgeGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Cards dynamically populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- GBA SLOT SECTION DIVIDER #2 -->
+        <div class="relative my-12">
+            <div class="gba-slot-container p-4">
+                <div class="gba-cartridge-header max-w-sm mx-auto p-2 shadow-lg">
+                    <div class="cartridge-ribs mb-1">
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                    </div>
+                    <div class="bg-gradient-to-r from-mutedYellow/30 via-apricot/30 to-neonPink/30 p-2 rounded text-center border border-gray-600/50">
+                        <div class="font-pixel text-[10px] text-amber-300 tracking-wider uppercase">▼ SLOT 02: 18-TYPE MATRIX ▼</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 18-TYPE MATCHUP CHART & INTERACTIVE MATRIX -->
+        <section class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="font-pixel text-sm text-gray-200">18-TYPE MATCH-UP MATRIX</h2>
+                    <p class="font-mono text-xs text-gray-400 mt-1">Hover over any element type badge to map dynamic multipliers</p>
+                </div>
+                <div id="typeMatrixStatus" class="font-mono text-xs bg-darkBg px-3 py-1.5 rounded-lg border border-darkBorder text-teal-400">
+                    SELECT TYPE TO HIGHLIGHT
+                </div>
+            </div>
+
+            <!-- Type Grid Buttons -->
+            <div id="typeSelectorGrid" class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-2 mb-6">
+                <!-- Javascript will inject 18 Type Badges -->
+            </div>
+
+            <!-- Dynamic Relationship Display Panels -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+                <div class="bg-darkBg/90 border border-emerald-500/30 rounded-xl p-4 shadow-md">
+                    <div class="flex items-center gap-2 mb-2 text-emerald-400 font-bold border-b border-emerald-500/20 pb-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7 7 7M5 19l7-7 7 7"/></svg>
+                        <span>SUPER EFFECTIVE (2.0x)</span>
+                    </div>
+                    <div id="effectiveList" class="flex flex-wrap gap-1.5 min-h-[32px] items-center text-gray-400">
+                        Hover over a type badge above
+                    </div>
+                </div>
+
+                <div class="bg-darkBg/90 border border-apricot/30 rounded-xl p-4 shadow-md">
+                    <div class="flex items-center gap-2 mb-2 text-apricot font-bold border-b border-apricot/20 pb-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7-7-7M19 5l-7 7-7-7"/></svg>
+                        <span>NOT EFFECTIVE (0.5x)</span>
+                    </div>
+                    <div id="weakList" class="flex flex-wrap gap-1.5 min-h-[32px] items-center text-gray-400">
+                        Hover over a type badge above
+                    </div>
+                </div>
+
+                <div class="bg-darkBg/90 border border-sky/30 rounded-xl p-4 shadow-md">
+                    <div class="flex items-center gap-2 mb-2 text-sky font-bold border-b border-sky/20 pb-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                        <span>NO EFFECT (0.0x)</span>
+                    </div>
+                    <div id="immuneList" class="flex flex-wrap gap-1.5 min-h-[32px] items-center text-gray-400">
+                        Hover over a type badge above
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GBA SLOT SECTION DIVIDER #3 -->
+        <div class="relative my-12">
+            <div class="gba-slot-container p-4">
+                <div class="gba-cartridge-header max-w-sm mx-auto p-2 shadow-lg">
+                    <div class="cartridge-ribs mb-1">
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                        <div class="cartridge-rib"></div>
+                    </div>
+                    <div class="bg-gradient-to-r from-sky/30 via-tealAccent/30 to-moss/30 p-2 rounded text-center border border-gray-600/50">
+                        <div class="font-pixel text-[10px] text-sky-300 tracking-wider uppercase">▼ SLOT 03: REGION MAP ATLAS ▼</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTERACTIVE GLOWING REGION ATLAS & WEATHER OVERLAYS -->
+        <section class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="font-pixel text-sm text-gray-200">HOENN REGION DIGITAL ATLAS</h2>
+                    <p class="font-mono text-xs text-gray-400 mt-1">Select location beacons to reveal field research notes and active climate simulations</p>
+                </div>
+                <!-- Weather Overlay Toggles -->
+                <div class="flex items-center gap-2 font-mono text-xs">
+                    <span class="text-gray-400">WEATHER:</span>
+                    <button onclick="setWeather('clear')" class="weather-btn px-2.5 py-1 rounded bg-darkBg border border-darkBorder text-gray-300 hover:text-white">CLEAR</button>
+                    <button onclick="setWeather('rain')" class="weather-btn px-2.5 py-1 rounded bg-darkBg border border-darkBorder text-sky hover:text-sky-300">RAIN</button>
+                    <button onclick="setWeather('fog')" class="weather-btn px-2.5 py-1 rounded bg-darkBg border border-darkBorder text-gray-400 hover:text-white">FOG</button>
+                    <button onclick="setWeather('sun')" class="weather-btn px-2.5 py-1 rounded bg-darkBg border border-darkBorder text-mutedYellow hover:text-yellow-300">SUN</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- SVG Map Canvas Box -->
+                <div id="mapViewport" class="lg:col-span-8 bg-darkBg border border-darkBorder rounded-xl relative overflow-hidden min-h-[380px] flex items-center justify-center p-4 transition duration-300">
+                    <div id="weatherLayer" class="absolute inset-0 pointer-events-none z-10 transition duration-500"></div>
+
+                    <!-- Glowing Vector Map SVG -->
+                    <svg class="w-full h-auto max-h-[420px] text-gray-700" viewBox="0 0 800 500" fill="none">
+                        <path d="M120,200 Q200,120 380,180 T600,160 Q720,220 680,380 T380,420 Q200,400 120,200 Z" fill="#141a21" stroke="#2b938f" stroke-width="2" stroke-dasharray="4 2"/>
+                        <path d="M420,220 Q500,180 580,240 T500,320 Z" fill="#1b232c" stroke="#4a7c59" stroke-width="2"/>
+                        <path d="M 150 250 L 280 250 L 350 180 L 480 200 L 620 280 L 550 360 L 320 350 Z" stroke="#3a86ff" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.4"/>
+
+                        <g class="map-beacon cursor-pointer" onclick="selectBeacon('littleroot')">
+                            <circle cx="220" cy="330" r="12" fill="#2b938f" opacity="0.2" class="animate-ping"/>
+                            <circle cx="220" cy="330" r="6" fill="#2b938f" stroke="#ffffff" stroke-width="2"/>
+                            <text x="220" y="355" text-anchor="middle" fill="#2b938f" font-family="JetBrains Mono" font-size="11" font-weight="bold">LITTLEROOT</text>
+                        </g>
+
+                        <g class="map-beacon cursor-pointer" onclick="selectBeacon('fortree')">
+                            <circle cx="480" cy="150" r="12" fill="#4a7c59" opacity="0.2" class="animate-ping"/>
+                            <circle cx="480" cy="150" r="6" fill="#4a7c59" stroke="#ffffff" stroke-width="2"/>
+                            <text x="480" y="135" text-anchor="middle" fill="#60a373" font-family="JetBrains Mono" font-size="11" font-weight="bold">FORTREE CITY</text>
+                        </g>
+
+                        <g class="map-beacon cursor-pointer" onclick="selectBeacon('sootopolis')">
+                            <circle cx="620" cy="270" r="12" fill="#3a86ff" opacity="0.2" class="animate-ping"/>
+                            <circle cx="620" cy="270" r="6" fill="#3a86ff" stroke="#ffffff" stroke-width="2"/>
+                            <text x="620" y="295" text-anchor="middle" fill="#3a86ff" font-family="JetBrains Mono" font-size="11" font-weight="bold">SOOTOPOLIS</text>
+                        </g>
+
+                        <g class="map-beacon cursor-pointer" onclick="selectBeacon('chimney')">
+                            <circle cx="340" cy="190" r="12" fill="#fb5607" opacity="0.2" class="animate-ping"/>
+                            <circle cx="340" cy="190" r="6" fill="#fb5607" stroke="#ffffff" stroke-width="2"/>
+                            <text x="340" y="175" text-anchor="middle" fill="#fb5607" font-family="JetBrains Mono" font-size="11" font-weight="bold">MT. CHIMNEY</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Map Location Detail Drawer -->
+                <div class="lg:col-span-4 bg-darkBg border border-darkBorder rounded-xl p-5 flex flex-col justify-between h-full min-h-[380px]">
+                    <div>
+                        <div class="flex items-center gap-2 text-sky mb-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                            <span class="font-pixel text-xs">ATLAS LOCATION SPECS</span>
+                        </div>
+                        <h3 id="beaconTitle" class="font-pixel text-base text-gray-100 my-1">LITTLEROOT TOWN</h3>
+                        <div id="beaconCoords" class="font-mono text-xs text-teal-400 mb-3">COORDS: 22.4° N, 114.1° E</div>
+                        <p id="beaconDesc" class="font-mono text-xs text-gray-400 leading-relaxed border-t border-b border-darkBorder py-3 my-2">
+                            A quaint, quiet town where journeys begin. Home to Professor Birch's Pokémon Lab and advanced field research telemetry terminals.
+                        </p>
+                    </div>
+
+                    <div class="space-y-2 font-mono text-xs">
+                        <div class="flex justify-between py-1 border-b border-darkBorder/50">
+                            <span class="text-gray-500">CLIMATE:</span>
+                            <span id="beaconClimate" class="text-emerald-400 font-bold">TEMPERATE / CLEAR</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-darkBorder/50">
+                            <span class="text-gray-500">WILD ENCOUNTERS:</span>
+                            <span id="beaconEncounters" class="text-mutedYellow font-bold">ZIGZAGOON, POOCHYENA</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-gray-500">KEY LANDMARK:</span>
+                            <span id="beaconLandmark" class="text-sky font-bold">BIRCH'S LAB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER & TOAST -->
+        <footer class="mt-12 p-6 rounded-xl bg-darkCard border border-darkBorder flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-gray-500">
+            <div>
+                <span>POCKET ARCHIVE © 2026 // RETRO-FUTURISTIC GBA SYSTEM</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="copyCurrentUrl()" class="hover:text-teal-400 transition flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>SHARE SYSTEM LINK</span>
+                </button>
+            </div>
+        </footer>
+
+        <!-- Toast Notification Popover -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-tealAccent text-white font-mono text-xs px-4 py-3 rounded-xl shadow-2xl border border-white/20 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span id="toastMsg">Code copied to clipboard!</span>
+        </div>
+    </div>
+
+    <script>
+        // Cartridge Database (14 GBA Era Games & Spin-offs)
+        const CARTRIDGES = [
+            { id: 'RUBY', title: 'Pokémon Ruby Version', gen: 'GEN3', type: 'FIRE', year: '2002', code: 'AGB-AXVE-USA', color: '#fb5607', desc: 'Embark on a journey through the Hoenn region, encountering Groudon and Team Magma.', stats: { rating: '9.5', rom: '16MB' }, foil: true },
+            { id: 'SAPPHIRE', title: 'Pokémon Sapphire Version', gen: 'GEN3', type: 'WATER', year: '2002', code: 'AGB-AXPE-USA', color: '#3a86ff', desc: 'Dive into ancient oceans and awaken Kyogre while defeating Team Aqua.', stats: { rating: '9.5', rom: '16MB' }, foil: true },
+            { id: 'EMERALD', title: 'Pokémon Emerald Version', gen: 'GEN3', type: 'DRAGON', year: '2004', code: 'AGB-BPEE-USA', color: '#4a7c59', desc: 'The definitive Hoenn story featuring Rayquaza, Battle Frontier, and dual rival teams.', stats: { rating: '9.8', rom: '16MB' }, foil: true },
+            { id: 'FIRERED', title: 'Pokémon FireRed Version', gen: 'GEN1_REMAKE', type: 'FIRE', year: '2004', code: 'AGB-BPRN-USA', color: '#ff006e', desc: 'Return to Kanto with upgraded GBA graphics, Sevii Islands, and Wireless Adapter support.', stats: { rating: '9.4', rom: '16MB' }, foil: true },
+            { id: 'LEAFGREEN', title: 'Pokémon LeafGreen Version', gen: 'GEN1_REMAKE', type: 'GRASS', year: '2004', code: 'AGB-BPGE-USA', color: '#2b938f', desc: 'Classic Kanto revisited with Venusaur, modern combat mechanics, and expanded Dex.', stats: { rating: '9.3', rom: '16MB' }, foil: true },
+            { id: 'MYSTERY_RED', title: 'Mystery Dungeon Red Rescue', gen: 'SPINOFF', type: 'NORMAL', year: '2005', code: 'AGB-B24E-USA', color: '#ffbe0b', desc: 'Wake up as a Pokémon and form a rescue team to explore ever-changing dungeons.', stats: { rating: '9.0', rom: '32MB' }, foil: false },
+            { id: 'PINBALL_RS', title: 'Pokémon Pinball: Ruby & Sapphire', gen: 'SPINOFF', type: 'ELECTRIC', year: '2003', code: 'AGB-VPPN-USA', color: '#3a86ff', desc: 'Catch over 200 Pokémon using pinball physics and special bonus mini-games.', stats: { rating: '8.8', rom: '8MB' }, foil: false },
+            { id: 'TROZEI', title: 'Pokémon Trozei GBA Prototype', gen: 'SPINOFF', type: 'PSYCHIC', year: '2005', code: 'AGB-ZPRT-PROTO', color: '#ff006e', desc: 'Fast-paced puzzle action prototype designed for high-speed handheld play.', stats: { rating: '8.5', rom: '8MB' }, foil: false },
+            { id: 'TCG_ADVANCE', title: 'Pokémon TCG Advance Vault', gen: 'SPINOFF', type: 'STEEL', year: '2003', code: 'AGB-PTCG-JPN', color: '#2b938f', desc: 'Japanese edition card battle simulator optimized for GBA link cables.', stats: { rating: '8.9', rom: '16MB' }, foil: false },
+            { id: 'DASH_DEMO', title: 'Pokémon Dash GBA Concept', gen: 'SPINOFF', type: 'FLYING', year: '2004', code: 'AGB-PDSH-DEMO', color: '#3a86ff', desc: 'High-speed racing prototype utilizing early tactile button sequences.', stats: { rating: '8.1', rom: '8MB' }, foil: false },
+            { id: 'RUMBLE_GBA', title: 'Pokémon Rumble Tech Demo', gen: 'SPINOFF', type: 'ROCK', year: '2005', code: 'AGB-PRMB-TECH', color: '#fb5607', desc: 'Early real-time toy Pokémon battle test cart created for hardware stress tests.', stats: { rating: '8.4', rom: '16MB' }, foil: false },
+            { id: 'BOX_RS', title: 'Pokémon Box: Ruby & Sapphire', gen: 'GEN3', type: 'NORMAL', year: '2003', code: 'AGB-GPXP-USA', color: '#4a7c59', desc: 'Storage system allowing trainers to organize up to 1,500 Pokémon on GBA.', stats: { rating: '8.7', rom: '4MB' }, foil: false },
+            { id: 'COLOSSEUM_BONUS', title: 'Colosseum Bonus Disc GBA', gen: 'GEN3', type: 'GHOST', year: '2003', code: 'AGB-JIRACHI-US', color: '#ffbe0b', desc: 'Special event cartridge used to distribute the mythical Pokémon Jirachi.', stats: { rating: '9.6', rom: '4MB' }, foil: true },
+            { id: 'E_READER_PROMO', title: 'E-Reader Battle Card Collection', gen: 'SPINOFF', type: 'DARK', year: '2002', code: 'AGB-ERED-USA', color: '#161a1e', desc: 'Barcode scanning cartridge integration for custom battle towers.', stats: { rating: '8.3', rom: '8MB' }, foil: false }
+        ];
+
+        // 18 Types Data Matrix
+        const TYPES_DATA = {
+            FIRE: { color: '#fb5607', strong: ['GRASS', 'ICE', 'BUG', 'STEEL'], weak: ['WATER', 'GROUND', 'ROCK'], immune: [] },
+            WATER: { color: '#3a86ff', strong: ['FIRE', 'GROUND', 'ROCK'], weak: ['ELECTRIC', 'GRASS'], immune: [] },
+            GRASS: { color: '#4a7c59', strong: ['WATER', 'GROUND', 'ROCK'], weak: ['FIRE', 'ICE', 'POISON', 'FLYING', 'BUG'], immune: [] },
+            ELECTRIC: { color: '#ffbe0b', strong: ['WATER', 'FLYING'], weak: ['GROUND'], immune: [] },
+            ICE: { color: '#70d6ff', strong: ['GRASS', 'GROUND', 'FLYING', 'DRAGON'], weak: ['FIRE', 'FIGHTING', 'ROCK', 'STEEL'], immune: [] },
+            FIGHTING: { color: '#d62828', strong: ['NORMAL', 'ICE', 'ROCK', 'DARK', 'STEEL'], weak: ['FLYING', 'PSYCHIC', 'FAIRY'], immune: [] },
+            POISON: { color: '#a01a58', strong: ['GRASS', 'FAIRY'], weak: ['GROUND', 'PSYCHIC'], immune: [] },
+            GROUND: { color: '#cca43b', strong: ['FIRE', 'ELECTRIC', 'POISON', 'ROCK', 'STEEL'], weak: ['WATER', 'GRASS', 'ICE'], immune: ['ELECTRIC'] },
+            FLYING: { color: '#829cbc', strong: ['GRASS', 'FIGHTING', 'BUG'], weak: ['ELECTRIC', 'ICE', 'ROCK'], immune: ['GROUND'] },
+            PSYCHIC: { color: '#ff006e', strong: ['FIGHTING', 'POISON'], weak: ['BUG', 'GHOST', 'DARK'], immune: [] },
+            BUG: { color: '#9ef01a', strong: ['GRASS', 'PSYCHIC', 'DARK'], weak: ['FIRE', 'FLYING', 'ROCK'], immune: [] },
+            ROCK: { color: '#8f5d5d', strong: ['FIRE', 'ICE', 'FLYING', 'BUG'], weak: ['WATER', 'GRASS', 'ICE', 'FIGHTING', 'GROUND', 'STEEL'], immune: [] },
+            GHOST: { color: '#7209b7', strong: ['PSYCHIC', 'GHOST'], weak: ['GHOST', 'DARK'], immune: ['NORMAL', 'FIGHTING'] },
+            DRAGON: { color: '#3f37c9', strong: ['DRAGON'], weak: ['ICE', 'DRAGON', 'FAIRY'], immune: [] },
+            DARK: { color: '#2b2d42', strong: ['PSYCHIC', 'GHOST'], weak: ['FIGHTING', 'BUG', 'FAIRY'], immune: ['PSYCHIC'] },
+            STEEL: { color: '#8d99ae', strong: ['ICE', 'ROCK', 'FAIRY'], weak: ['POISON', 'STEEL'], immune: ['POISON'] },
+            FAIRY: { color: '#ffb5a7', strong: ['FIGHTING', 'DRAGON', 'DARK'], weak: ['POISON', 'STEEL'], immune: ['DRAGON'] },
+            NORMAL: { color: '#adb5bd', strong: [], weak: ['FIGHTING'], immune: ['GHOST'] }
+        };
+
+        // Region Atlas Data
+        const REGION_LOCATIONS = {
+            littleroot: {
+                title: 'LITTLEROOT TOWN',
+                coords: '22.4° N, 114.1° E',
+                desc: "A quaint, quiet town where journeys begin. Home to Professor Birch's Pokémon Lab and advanced field research telemetry terminals.",
+                climate: 'TEMPERATE / CLEAR',
+                encounters: 'ZIGZAGOON, POOCHYENA',
+                landmark: "BIRCH'S LAB"
+            },
+            fortree: {
+                title: 'FORTREE CITY',
+                coords: '18.2° N, 120.5° E',
+                desc: 'A treetop city built in harmony with nature. Inhabitants reside in wooden houses built into towering canopy trees.',
+                climate: 'HUMID / CANOPY SHADE',
+                encounters: 'KECLEON, TROPICUS',
+                landmark: 'TREE HOUSE GYM'
+            },
+            sootopolis: {
+                title: 'SOOTOPOLIS CITY',
+                coords: '14.8° N, 128.9° E',
+                desc: 'A mystical city situated inside a collapsed volcanic crater, accessible only by diving through underwater trenches.',
+                climate: 'OCEANIC BREEZE',
+                encounters: 'MAGIKARP, GYARADOS',
+                landmark: 'CAVE OF ORIGIN'
+            },
+            chimney: {
+                title: 'MT. CHIMNEY',
+                coords: '20.1° N, 118.3° E',
+                desc: 'An active volcano towering over northern Hoenn. The cable car system provides access to the smoldering crater peak.',
+                climate: 'VOLCANIC ASH',
+                encounters: 'NUMEL, SPOINK',
+                landmark: 'MAGMA HIDEOUT'
+            }
+        };
+
+        // CUTER Whole-Body Organic Symmetrical Pixel Creature Generator
+        function generateCreatureSvg(seedVal = Math.random()) {
+            const gridWidth = 16;
+            const gridHeight = 16;
+            const pSize = 8; // Pixel dimension in SVG canvas
+            const canvasOffset = 8;
+
+            // 4-Tone Retro Color Palette Sets (Outline Dark, Primary Base, Shadow Accent, Highlight Tone)
+            const paletteSets = [
+                { dark: '#2b0f1a', base: '#ff9ebb', shadow: '#e06d90', light: '#fff0f4', belly: '#fff3f6', blush: '#ff3b68', name: 'Kawaii Bunny' },
+                { dark: '#0c2217', base: '#9be3b4', shadow: '#58b778', light: '#edfaf1', belly: '#f4fbf6', blush: '#ff6584', name: 'Mint Sprout' },
+                { dark: '#1b122c', base: '#cdb4db', shadow: '#9b72cf', light: '#f8f2fc', belly: '#fcf8ff', blush: '#ff6b8b', name: 'Lilac Neko' },
+                { dark: '#0a1d33', base: '#8ecae6', shadow: '#219ebc', light: '#f0f8ff', belly: '#f7fbff', blush: '#ff708e', name: 'Ocean Slime' },
+                { dark: '#2b1603', base: '#ffb703', shadow: '#fb8500', light: '#fff8e3', belly: '#fffcf0', blush: '#f07167', name: 'Citrus Fox' },
+                { dark: '#23140c', base: '#f4a261', shadow: '#e76f51', light: '#fdf0e7', belly: '#fef8f3', blush: '#d90429', name: 'Peach Bear' }
+            ];
+
+            const setIndex = Math.floor(seedVal * paletteSets.length);
+            const palette = paletteSets[setIndex];
+
+            // 1. Generate Organic, Connected Whole-Body Pixel Grid Matrix (16x16)
+            // 0: Empty, 1: Base Body, 2: Shadow, 3: Belly Light, 4: Ear/Sprout
+            const grid = Array.from({ length: gridHeight }, () => Array(gridWidth).fill(0));
+
+            // Select body archetype (Round Chubby, Pear/Pikachu-like, or Squishy Slime)
+            const bodyType = Math.floor(seedVal * 300) % 3;
+
+            for (let y = 0; y < gridHeight; y++) {
+                let halfWidth = 0;
+
+                if (bodyType === 0) { // Round Chubby
+                    if (y === 3) halfWidth = 3;
+                    else if (y === 4) halfWidth = 5;
+                    else if (y >= 5 && y <= 9) halfWidth = 6;
+                    else if (y >= 10 && y <= 12) halfWidth = 5;
+                    else if (y === 13) halfWidth = 3;
+                } else if (bodyType === 1) { // Pear Shape
+                    if (y === 3) halfWidth = 2;
+                    else if (y === 4) halfWidth = 4;
+                    else if (y >= 5 && y <= 7) halfWidth = 5;
+                    else if (y >= 8 && y <= 12) halfWidth = 6;
+                    else if (y === 13) halfWidth = 4;
+                } else { // Squishy Slime
+                    if (y === 4) halfWidth = 3;
+                    else if (y === 5) halfWidth = 5;
+                    else if (y >= 6 && y <= 10) halfWidth = 7;
+                    else if (y >= 11 && y <= 12) halfWidth = 6;
+                    else if (y === 13) halfWidth = 4;
+                }
+
+                for (let x = 0; x < halfWidth; x++) {
+                    const col = 8 + x; // Right half
+                    const symCol = 7 - x; // Left half (Symmetrical)
+                    grid[y][col] = 1;
+                    grid[y][symCol] = 1;
+                }
+            }
+
+            // Add Ears/Horns on Top (Connected to head base)
+            const earType = Math.floor(seedVal * 100) % 3;
+            if (earType === 0) { // Neko Ears
+                grid[1][5] = 4; grid[1][2] = 4;
+                grid[2][5] = 4; grid[2][4] = 4; grid[2][3] = 4; grid[2][2] = 4;
+            } else if (earType === 1) { // Long Bunny Ears
+                grid[0][5] = 4; grid[0][2] = 4;
+                grid[1][5] = 4; grid[1][2] = 4;
+                grid[2][5] = 4; grid[2][2] = 4;
+            } else { // Cute Antenna / Leaf Sprout
+                grid[1][7] = 4; grid[1][8] = 4;
+                grid[2][7] = 4; grid[2][8] = 4;
+            }
+
+            // Lighter Oval Belly Patch
+            for (let y = 8; y <= 11; y++) {
+                const width = (y === 9 || y === 10) ? 3 : 2;
+                for (let x = 0; x < width; x++) {
+                    grid[y][8 + x] = 3;
+                    grid[y][7 - x] = 3;
+                }
+            }
+
+            // Bottom Right Shading (Shadow Accent for Volume)
+            for (let y = 6; y < gridHeight; y++) {
+                for (let x = 0; x < gridWidth; x++) {
+                    if (grid[y][x] === 1 && x >= 10 && y >= 8) {
+                        grid[y][x] = 2; // Shadow tone
+                    }
+                }
+            }
+
+            // Build SVG DOM String
+            let svgPixels = '';
+
+            // 2. Draw Unified Dark Outer Outline (Check all adjacent 4-neighbors)
+            for (let y = 0; y < gridHeight; y++) {
+                for (let x = 0; x < gridWidth; x++) {
+                    if (grid[y][x] === 0) {
+                        // Check if adjacent to body pixel
+                        const hasNeighbor = 
+                            (y > 0 && grid[y-1][x] > 0) ||
+                            (y < gridHeight - 1 && grid[y+1][x] > 0) ||
+                            (x > 0 && grid[y][x-1] > 0) ||
+                            (x < gridWidth - 1 && grid[y][x+1] > 0);
+
+                        if (hasNeighbor) {
+                            const px = x * pSize + canvasOffset;
+                            const py = y * pSize + canvasOffset;
+                            svgPixels += `<rect x="${px}" y="${py}" width="${pSize}" height="${pSize}" fill="${palette.dark}" rx="1"/>`;
+                        }
+                    }
+                }
+            }
+
+            // 3. Render Solid Body Pixels with Volume Shading
+            for (let y = 0; y < gridHeight; y++) {
+                for (let x = 0; x < gridWidth; x++) {
+                    const type = grid[y][x];
+                    if (type > 0) {
+                        const px = x * pSize + canvasOffset;
+                        const py = y * pSize + canvasOffset;
+                        let color = palette.base;
+                        if (type === 2) color = palette.shadow;
+                        else if (type === 3) color = palette.belly;
+                        else if (type === 4) color = palette.base;
+
+                        // Top-left highlight sheen
+                        if (y <= 4 && x >= 4 && x <= 6 && type === 1) color = palette.light;
+
+                        svgPixels += `<rect x="${px}" y="${py}" width="${pSize}" height="${pSize}" fill="${color}" rx="1"/>`;
+                    }
+                }
+            }
+
+            // 4. Kawaii Expressive Eyes (Big 2x3 Dark Pupils + Double Specular Sparkles)
+            const eyeY = 5 * pSize + canvasOffset;
+            const eyeLX = 4 * pSize + canvasOffset;
+            const eyeRX = 10 * pSize + canvasOffset;
+            const eyeWidth = pSize * 2;
+            const eyeHeight = pSize * 2.4;
+
+            // Dark Pupils
+            svgPixels += `<rect x="${eyeLX}" y="${eyeY}" width="${eyeWidth}" height="${eyeHeight}" fill="${palette.dark}" rx="3"/>`;
+            svgPixels += `<rect x="${eyeRX}" y="${eyeY}" width="${eyeWidth}" height="${eyeHeight}" fill="${palette.dark}" rx="3"/>`;
+
+            // Main Large Shine (Top Left)
+            svgPixels += `<rect x="${eyeLX + 1}" y="${eyeY + 1}" width="${pSize * 0.9}" height="${pSize * 0.9}" fill="#ffffff" rx="1"/>`;
+            svgPixels += `<rect x="${eyeRX + 1}" y="${eyeY + 1}" width="${pSize * 0.9}" height="${pSize * 0.9}" fill="#ffffff" rx="1"/>`;
+
+            // Secondary Twinkle Shine (Bottom Right)
+            svgPixels += `<rect x="${eyeLX + pSize}" y="${eyeY + pSize * 1.3}" width="${pSize * 0.5}" height="${pSize * 0.5}" fill="#ffffff" rx="0.5"/>`;
+            svgPixels += `<rect x="${eyeRX + pSize}" y="${eyeY + pSize * 1.3}" width="${pSize * 0.5}" height="${pSize * 0.5}" fill="#ffffff" rx="0.5"/>`;
+
+            // 5. Rosy Blush Cheeks Under Eyes
+            const cheekY = 7.2 * pSize + canvasOffset;
+            const cheekLX = 3 * pSize + canvasOffset;
+            const cheekRX = 11 * pSize + canvasOffset;
+            svgPixels += `<rect x="${cheekLX}" y="${cheekY}" width="${pSize * 1.6}" height="${pSize * 0.9}" fill="${palette.blush}" opacity="0.85" rx="2"/>`;
+            svgPixels += `<rect x="${cheekRX}" y="${cheekY}" width="${pSize * 1.6}" height="${pSize * 0.9}" fill="${palette.blush}" opacity="0.85" rx="2"/>`;
+
+            // 6. Cute Cat Nose & 'v' Smile
+            const mouthX = 7.5 * pSize + canvasOffset;
+            const mouthY = 7.3 * pSize + canvasOffset;
+            svgPixels += `<path d="M ${mouthX - 3} ${mouthY} Q ${mouthX} ${mouthY + 4} ${mouthX + 3} ${mouthY}" stroke="${palette.dark}" stroke-width="2" stroke-linecap="round" fill="none"/>`;
+
+            return {
+                svg: `
+                    <svg width="144" height="144" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="144" height="144" rx="20" fill="#0e1114" fill-opacity="0.5"/>
+                        <g filter="drop-shadow(0px 8px 12px rgba(0,0,0,0.6))">
+                            ${svgPixels}
+                        </g>
+                    </svg>
+                `,
+                paletteName: palette.name
+            };
+        }
+
+        // Reroll Creature Action
+        function rerollCreature() {
+            const seed = Math.random();
+            const hexSeed = '#' + Math.floor(seed * 16777215).toString(16).toUpperCase().padStart(6, '0');
+            const result = generateCreatureSvg(seed);
+
+            document.getElementById('creatureSvgHolder').innerHTML = result.svg;
+            document.getElementById('creatureSeedTag').innerText = `SEED: ${hexSeed}`;
+
+            const cuteNames = ['MIMI-PUFF', 'CHIBI-KITSUNE', 'BUNBUN-GLOW', 'LUNA-SLIME', 'PIPI-SPROUT', 'MOCHI-BEAR'];
+            const types = ['TYPE: FAIRY / CUTE', 'TYPE: WATER / BUBBLE', 'TYPE: GRASS / SPROUT', 'TYPE: PSYCHIC / STAR'];
+            
+            document.getElementById('creatureName').innerText = `${cuteNames[Math.floor(seed * cuteNames.length)]} #${Math.floor(seed * 900 + 100)}`;
+            document.getElementById('creatureType').innerText = `${types[Math.floor(seed * types.length)]} [${result.paletteName}]`;
+
+            typewriterLog(`Generated whole polished creature seed ${hexSeed}. 4-tone shaded retro mesh compiled.`);
+        }
+
+        let typewriterIndex = 0;
+        let typewriterInterval = null;
+        let audioTickerActive = true;
+
+        function typewriterLog(text) {
+            const el = document.getElementById('typewriterText');
+            el.innerText = '';
+            typewriterIndex = 0;
+            if (typewriterInterval) clearInterval(typewriterInterval);
+
+            typewriterInterval = setInterval(() => {
+                if (typewriterIndex < text.length) {
+                    el.innerText += text.charAt(typewriterIndex);
+                    typewriterIndex++;
+                    if (audioTickerActive && typewriterIndex % 3 === 0) playAudioBeep();
+                } else {
+                    clearInterval(typewriterInterval);
+                }
+            }, 20);
+        }
+
+        function playAudioBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(640, ctx.currentTime);
+                gain.gain.setValueAtTime(0.012, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.04);
+            } catch (e) { }
+        }
+
+        function renderCartridges(items) {
+            const grid = document.getElementById('cartridgeGrid');
+            grid.innerHTML = '';
+
+            items.forEach(cart => {
+                const card = document.createElement('div');
+                card.className = `holo-card bg-darkCard border border-darkBorder rounded-2xl p-5 shadow-xl flex flex-col justify-between group transition-all duration-300 hover:border-tealAccent/50`;
+                
+                card.onmousemove = (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    card.style.transform = `perspective(1000px) rotateX(${-y / 12}deg) rotateY(${x / 12}deg) scale(1.02)`;
+                };
+                card.onmouseleave = () => {
+                    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+                };
+
+                card.innerHTML = `
+                    <div>
+                        <div class="gba-cartridge-header p-2 mb-3">
+                            <div class="cartridge-ribs mb-1">
+                                <div class="cartridge-rib"></div>
+                                <div class="cartridge-rib"></div>
+                                <div class="cartridge-rib"></div>
+                            </div>
+                            <div class="flex items-center justify-between px-2">
+                                <span class="font-mono text-[10px] text-gray-400">${cart.code}</span>
+                                <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded text-white" style="background-color: ${cart.color}">${cart.type}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start justify-between gap-2 my-2">
+                            <h3 class="font-pixel text-xs text-gray-100 group-hover:text-teal-300 transition">${cart.title}</h3>
+                            ${cart.foil ? `<span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-mono border border-amber-500/40">FOIL</span>` : ''}
+                        </div>
+
+                        <p class="font-mono text-xs text-gray-400 leading-relaxed my-2 line-clamp-3">${cart.desc}</p>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-darkBorder/60 flex items-center justify-between font-mono text-xs">
+                        <div class="text-gray-500">
+                            RATING: <span class="text-emerald-400 font-bold">${cart.stats.rating}</span>
+                        </div>
+                        <button onclick="copyCode('${cart.code}')" class="px-2.5 py-1 rounded bg-darkBg border border-darkBorder hover:border-tealAccent text-gray-300 hover:text-white transition active:scale-95">
+                            COPY CODE
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('counterValue').innerText = `${items.length}/${CARTRIDGES.length}`;
+        }
+
+        function initTypeMatrix() {
+            const grid = document.getElementById('typeSelectorGrid');
+            grid.innerHTML = '';
+
+            Object.keys(TYPES_DATA).forEach(type => {
+                const btn = document.createElement('button');
+                btn.className = `p-2 rounded-lg font-mono text-xs font-bold text-white text-center border border-white/10 transition transform hover:scale-105 active:scale-95 shadow-md`;
+                btn.style.backgroundColor = TYPES_DATA[type].color;
+                btn.innerText = type;
+
+                btn.onmouseenter = () => highlightTypeRelations(type);
+                grid.appendChild(btn);
+            });
+        }
+
+        function highlightTypeRelations(type) {
+            const data = TYPES_DATA[type];
+            document.getElementById('typeMatrixStatus').innerText = `SELECTED: ${type}`;
+
+            const renderBadges = (typesArray, targetId) => {
+                const container = document.getElementById(targetId);
+                if (!typesArray || typesArray.length === 0) {
+                    container.innerHTML = `<span class="text-gray-500 text-xs">NONE</span>`;
+                    return;
+                }
+                container.innerHTML = typesArray.map(t => `
+                    <span class="px-2 py-1 rounded text-white font-bold text-[10px]" style="background-color: ${TYPES_DATA[t]?.color || '#444'}">${t}</span>
+                `).join('');
+            };
+
+            renderBadges(data.strong, 'effectiveList');
+            renderBadges(data.weak, 'weakList');
+            renderBadges(data.immune, 'immuneList');
+        }
+
+        function selectBeacon(key) {
+            const loc = REGION_LOCATIONS[key];
+            if (!loc) return;
+
+            document.getElementById('beaconTitle').innerText = loc.title;
+            document.getElementById('beaconCoords').innerText = `COORDS: ${loc.coords}`;
+            document.getElementById('beaconDesc').innerText = loc.desc;
+            document.getElementById('beaconClimate').innerText = loc.climate;
+            document.getElementById('beaconEncounters').innerText = loc.encounters;
+            document.getElementById('beaconLandmark').innerText = loc.landmark;
+
+            typewriterLog(`Atlas telemetry centered on ${loc.title}. Environment scanning underway.`);
+        }
+
+        function setWeather(type) {
+            const layer = document.getElementById('weatherLayer');
+            layer.className = 'absolute inset-0 pointer-events-none z-10 transition duration-500';
+
+            if (type === 'rain') layer.classList.add('weather-rain');
+            if (type === 'fog') layer.classList.add('weather-fog');
+            if (type === 'sun') layer.classList.add('weather-sun');
+
+            typewriterLog(`Atmospheric generator engaged: ${type.toUpperCase()} weather overlay activated.`);
+        }
+
+        function initParticlePulse() {
+            const canvas = document.getElementById('pulseCanvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+
+            function resizeCanvas() {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            document.getElementById('creatureContainer').addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                for (let i = 0; i < 28; i++) {
+                    particles.push({
+                        x, y,
+                        vx: (Math.random() - 0.5) * 7,
+                        vy: (Math.random() - 0.5) * 7,
+                        radius: Math.random() * 3 + 2,
+                        color: ['#ffb3c6', '#b7e4c7', '#d8bbff', '#a2d2ff', '#ffbe0b'][Math.floor(Math.random() * 5)],
+                        alpha: 1
+                    });
+                }
+            });
+
+            function animParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, idx) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= 0.025;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.fill();
+
+                    if (p.alpha <= 0) particles.splice(idx, 1);
+                });
+                requestAnimationFrame(animParticles);
+            }
+            animParticles();
+        }
+
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast(`Cartridge Code [${code}] copied!`);
+            }).catch(() => {
+                showToast(`Code: ${code}`);
+            });
+        }
+
+        function copyCurrentUrl() {
+            navigator.clipboard.writeText(window.location.href);
+            showToast('System link copied to clipboard!');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2600);
+        }
+
+        function triggerGlitch() {
+            const body = document.getElementById('appBody');
+            body.classList.add('boot-glitch');
+            typewriterLog('SYSTEM REBOOT INITIATED... GBA CUTE DIGITAL OS MEMORY RESORTED.');
+            setTimeout(() => body.classList.remove('boot-glitch'), 400);
+        }
+
+        // Search & Filter Listeners
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = CARTRIDGES.filter(c => 
+                c.title.toLowerCase().includes(term) || 
+                c.code.toLowerCase().includes(term) || 
+                c.type.toLowerCase().includes(term)
+            );
+            renderCartridges(filtered);
+        });
+
+        document.getElementById('generationFilter').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === 'ALL') renderCartridges(CARTRIDGES);
+            else renderCartridges(CARTRIDGES.filter(c => c.gen === val));
+        });
+
+        // CRT Toggle
+        document.getElementById('crtToggleBtn').addEventListener('click', () => {
+            const crt = document.getElementById('crtOverlay');
+            const state = document.getElementById('crtState');
+            if (crt.style.display === 'none') {
+                crt.style.display = 'block';
+                state.innerText = 'ON';
+                state.className = 'text-emerald-400';
+            } else {
+                crt.style.display = 'none';
+                state.innerText = 'OFF';
+                state.className = 'text-gray-500';
+            }
+        });
+
+        // Ticker Audio Toggle
+        document.getElementById('tickerAudioBtn').addEventListener('click', (e) => {
+            audioTickerActive = !audioTickerActive;
+            e.target.innerText = audioTickerActive ? 'ACTIVE' : 'MUTED';
+            e.target.className = audioTickerActive 
+                ? 'px-2 py-0.5 rounded bg-darkBg border border-darkBorder font-mono text-xs text-emerald-400'
+                : 'px-2 py-0.5 rounded bg-darkBg border border-darkBorder font-mono text-xs text-gray-500';
+        });
+
+        document.getElementById('rerollCreatureBtn').addEventListener('click', rerollCreature);
+
+        window.onload = function () {
+            rerollCreature();
+            renderCartridges(CARTRIDGES);
+            initTypeMatrix();
+            initParticlePulse();
+            highlightTypeRelations('FIRE');
+        };
+    </script>
+</body>
+</html>
